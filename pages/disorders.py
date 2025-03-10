@@ -91,7 +91,7 @@ def load_data():
 df = load_data()
 
 # ------------------------------
-# Helper Functions for Filtering & Ranking
+# Helper Functions for Filtering
 # ------------------------------
 def filter_diabetes(df, sugar_threshold=5, carb_threshold=20):
     """Filter dishes suitable for diabetes by limiting sugars and carbs."""
@@ -115,23 +115,46 @@ def filter_allergen(df, allergen_keywords):
     mask = df["Menu Items"].str.lower().apply(lambda x: not any(word in x for word in allergen_keywords))
     return df[mask]
 
-def rank_dishes(df, nutrient_columns):
-    """Rank dishes by normalizing selected nutrient columns and summing them (lower score is better)."""
-    scaler = MinMaxScaler()
-    norm_values = scaler.fit_transform(df[nutrient_columns])
-    df['Nutrient_Score'] = norm_values.sum(axis=1)
-    return df.sort_values('Nutrient_Score')
+# ------------------------------
+# Improved Ranking for Diabetes Using a Weighted Score
+# ------------------------------
+def compute_diabetes_score(df):
+    """
+    Compute a diabetes-specific score:
+      - Lower total sugars and total carbohydrates are better.
+      - Higher protein is beneficial (thus subtracting its normalized value).
+    The score is computed as:
+         0.5 * norm_sugars + 0.5 * norm_carbs - 0.3 * norm_protein
+    """
+    df = df.copy()
+    # Scale each nutrient individually
+    scaler_sugars = MinMaxScaler()
+    scaler_carbs = MinMaxScaler()
+    scaler_protein = MinMaxScaler()
+    
+    df["norm_sugars"] = scaler_sugars.fit_transform(df[["Total Sugars (g)"]])
+    df["norm_carbs"] = scaler_carbs.fit_transform(df[["Total carbohydrate (g)"]])
+    df["norm_protein"] = scaler_protein.fit_transform(df[["Protein (g)"]])
+    
+    # Compute weighted score: lower score is better
+    df["Diabetes_Score"] = 0.5 * df["norm_sugars"] + 0.5 * df["norm_carbs"] - 0.3 * df["norm_protein"]
+    return df
 
 # ------------------------------
 # Recommendation Functions for Each Condition
 # ------------------------------
 def recommend_for_diabetes(df):
+    # First, filter out dishes with extremely high sugars or carbs
     filtered = filter_diabetes(df, sugar_threshold=5, carb_threshold=20)
-    ranked = rank_dishes(filtered, ["Total Sugars (g)", "Total carbohydrate (g)"])
-    return ranked.head(10)[["Menu Items", "Menu Category", "Total Sugars (g)", "Total carbohydrate (g)"]]
+    # Compute a more nuanced score for diabetes
+    scored_df = compute_diabetes_score(filtered)
+    # Rank dishes by the computed Diabetes_Score (ascending order is better)
+    ranked = scored_df.sort_values("Diabetes_Score", ascending=True)
+    return ranked.head(10)[["Menu Items", "Menu Category", "Total Sugars (g)", "Total carbohydrate (g)", "Protein (g)", "Diabetes_Score"]]
 
 def recommend_for_lactose_intolerance(df):
     filtered = filter_lactose(df)
+    # For lactose intolerance, you might prioritize lower energy (and thus possibly lighter meals)
     ranked = filtered.sort_values("Energy (kCal)", ascending=True)
     return ranked.head(10)[["Menu Items", "Menu Category", "Energy (kCal)"]]
 
