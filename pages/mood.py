@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 
 # ---- ✅ Fix: Set Page Config First ----
-st.set_page_config(page_title="Mood-Based Food Recommender", page_icon="💜", layout="centered")
+st.set_page_config(
+    page_title="Mind", page_icon="💜", layout="centered")
 
 # ---- Custom CSS for Aesthetic Aura Background ----
 st.markdown(
