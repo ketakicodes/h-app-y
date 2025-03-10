@@ -7,7 +7,6 @@ st.set_page_config(
     layout="centered"
 )
 
-# ---- Custom CSS for Enhanced Aesthetics ----
 st.markdown(
     """
     <style>
@@ -35,7 +34,6 @@ st.markdown(
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         margin-bottom: 0.5rem;
     }
-
     h2, h3, h4, h5, h6, p {
         text-align: center;
         color: #f0f0f0;
@@ -83,3 +81,10 @@ with col2:
 with col3:
     if st.button("🌟 SOUL WISE"):
         switch_page("Soul")
+
+# ---- New Row for Centered Disorders Wise Option ----
+st.markdown("<br>", unsafe_allow_html=True)
+col_left, col_center, col_right = st.columns(3)
+with col_center:
+    if st.button("🩺 DISORDERS WISE"):
+        switch_page("Disorders")
