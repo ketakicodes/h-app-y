@@ -6,61 +6,60 @@ from sklearn.preprocessing import MinMaxScaler
 # ------------------------------
 # Page Config & Aesthetics
 # ------------------------------
-st.set_page_config(page_title="Disorders", page_icon="🩺", layout="centered")
+st.set_page_config(page_title="Disorders", page_icon="🍽️", layout="centered")
 
-# Apply custom CSS for the "Purple Aura" aesthetic
-st.markdown(
-    """
+# Custom Styling: Matching Texture Vibes Aesthetic
+st.markdown("""
     <style>
-    /* Background - Purple Aura */
-    .stApp {
-        background: linear-gradient(135deg, #7b2cbf, #ff90e8);
-        color: white;
-    }
-
-    /* Centering Title */
-    h1, h2, h3, h4 {
-        text-align: center;
-    }
-
-    /* Select Box */
-    .stSelectbox {
-        background: #ffffff;
-        border-radius: 10px;
-        padding: 5px;
-    }
-
-    /* DataFrame Styling */
-    .stDataFrame {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
-        color: black;
-    }
-
-    /* Buttons */
-    .stButton>button {
-        background: linear-gradient(45deg, #ff69b4, #c738bd);
-        color: white;
-        font-weight: bold;
-        border-radius: 15px;
-        border: none;
-        padding: 10px;
-        transition: 0.3s;
-    }
-    .stButton>button:hover {
-        background: linear-gradient(45deg, #ff90e8, #ff69b4);
-        transform: scale(1.05);
-    }
+        /* Aura Gradient Background */
+        .stApp {
+            background: radial-gradient(circle, rgba(173,83,137,1) 10%, rgba(108,92,231,1) 40%, rgba(72,52,212,1) 70%, rgba(48,51,107,1) 100%);
+            color: white;
+        }
+        /* White Text with Bold and Centered Alignment */
+        h1, h2, h3, h4, h5, h6, p, label {
+            color: white !important;
+            font-weight: bold;
+            text-align: center;
+        }
+        /* Centering and Styling for Selectbox */
+        .stSelectbox {
+            margin: auto;
+            display: block;
+            width: 50%;
+        }
+        /* Styling for Buttons */
+        .stButton > button {
+            background-color: #ff69b4; /* Hot pink */
+            color: white;
+            font-weight: bold;
+            border-radius: 20px;
+            padding: 10px 25px;
+            box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease-in-out;
+            border: none;
+        }
+        .stButton > button:hover {
+            background-color: #ff1493; /* Deeper pink */
+            transform: scale(1.05);
+            cursor: pointer;
+        }
+        /* Highlight Box Styling for Results */
+        .highlight-box {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
     </style>
-    """,
-    unsafe_allow_html=True
-)
+""", unsafe_allow_html=True)
 
 # ------------------------------
 # Page Title
 # ------------------------------
-st.title("🍽️ Smart Meal Recommender")
-st.subheader("✨ Select your health condition to get personalized meal recommendations:")
+st.markdown("<h1>🍽️ Smart Meal Recommender</h1>", unsafe_allow_html=True)
+st.markdown("<p>✨ Select your health condition to get personalized meal recommendations ✨</p>", unsafe_allow_html=True)
 
 # ------------------------------
 # Health Condition Selector
@@ -75,14 +74,14 @@ condition = st.selectbox(
 # ------------------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv("India_Menu.csv")  # Load from correct path
+    df = pd.read_csv("India_Menu.csv")  # Ensure correct path
     df.columns = df.columns.str.strip()  # Remove accidental spaces
     return df
 
 df = load_data()
 
 # ------------------------------
-# Diabetes Score Calculation
+# Scoring Functions
 # ------------------------------
 def compute_diabetes_score(df):
     df = df.copy()
@@ -97,9 +96,6 @@ def compute_diabetes_score(df):
     df["Diabetes_Score"] = 0.6 * df["norm_sugars"] + 0.4 * df["norm_carbs"] - 0.3 * df["norm_protein"]
     return df
 
-# ------------------------------
-# PCOS/PCOD Score Calculation
-# ------------------------------
 def compute_pcos_score(df):
     df = df.copy()
     scaler_protein = MinMaxScaler()
@@ -171,20 +167,17 @@ def recommend_for_allergy(df, allergen="nuts"):
 # ------------------------------
 # Display Recommendations
 # ------------------------------
+st.markdown(f"<div class='highlight-box'>✨ Best meal recommendations for {condition}! ✨</div>", unsafe_allow_html=True)
+
 if condition == "Diabetes":
-    st.write("### 🍏 Top 10 Dishes for Diabetes")
     recommendations = recommend_for_diabetes(df)
 elif condition == "PCOS/PCOD":
-    st.write("### 🥑 Top 10 Dishes for PCOS/PCOD")
     recommendations = recommend_for_pcos(df)
 elif condition == "Lactose Intolerance":
-    st.write("### 🥛 Top 10 Dishes for Lactose Intolerance")
     recommendations = recommend_for_lactose_intolerance(df)
 elif condition == "Gluten Intolerance":
-    st.write("### 🍞 Top 10 Dishes for Gluten Intolerance")
     recommendations = recommend_for_gluten_intolerance(df)
 elif condition == "Nut Allergy":
-    st.write("### 🥜 Top 10 Dishes for Nut Allergy")
     recommendations = recommend_for_allergy(df, allergen="nuts")
 
 st.dataframe(recommendations, use_container_width=True)
