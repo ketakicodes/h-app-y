@@ -130,35 +130,34 @@ def preprocess_data(file_path):
         st.error(f"Error: {e}")
         return None
 
-# ---- ✅ Updated Recommendation Logic with Weights ----
+# ---- ✅ Updated Recommendation Logic with Proper Weights ----
 def recommend_items(df, category, mood_rating, top_n=3):
     """Filters by category (Veg/Non-Veg), applies weighted meal selection, and sorts by Mood Support Score."""
     df_filtered = df[df['Category'].str.lower() == category.lower()]  
 
-    # 🔵 **Low Mood (1-3): Comfort Food Priority**
-    if mood_rating <= 3:
-        df_filtered = df_filtered[
-            (df_filtered["Protein (g)"] > 6) &  # Higher protein
-            (df_filtered["Total Fat (g)"] > 5)  # More fats for comfort
-        ]
-    
-    # 🟡 **Neutral Mood (4-6): Balanced Meals**
-    elif 4 <= mood_rating <= 6:
-        df_filtered = df_filtered[
-            (df_filtered["Total carbohydrate (g)"] > 10) &  # Good carbs
-            (df_filtered["Protein (g)"] > 5) &  # Balanced protein
-            (df_filtered["Total Fat (g)"] < 8)  # Moderate fats
-        ]
+    # **Weighted Adjustments**
+    if mood_rating <= 3:  # Low Mood (Comfort Food)
+        df_filtered["Weighted Score"] = (
+            (df_filtered["Protein (g)"] * 0.4) +  
+            (df_filtered["Total Fat (g)"] * 0.5) -  
+            (df_filtered["Total Sugars (g)"] * 0.3)  
+        )
 
-    # 🟢 **High Mood (7-10): Energy-Boosting Foods**
-    else:
-        df_filtered = df_filtered[
-            (df_filtered["Total carbohydrate (g)"] > 15) &  # Higher carbs for energy
-            (df_filtered["Protein (g)"] > 4) &  # Moderate protein
-            (df_filtered["Total Fat (g)"] < 6)  # Low fat for quick digestion
-        ]
+    elif 4 <= mood_rating <= 6:  # Neutral Mood (Balanced Meals)
+        df_filtered["Weighted Score"] = (
+            (df_filtered["Protein (g)"] * 0.3) +  
+            (df_filtered["Total carbohydrate (g)"] * 0.4) -  
+            (df_filtered["Total Sugars (g)"] * 0.2)  
+        )
 
-    df_sorted = df_filtered.sort_values(by='Mood Support Score', ascending=False)
+    else:  # High Mood (Energy-Boosting)
+        df_filtered["Weighted Score"] = (
+            (df_filtered["Total carbohydrate (g)"] * 0.5) +  
+            (df_filtered["Protein (g)"] * 0.3) -  
+            (df_filtered["Total Fat (g)"] * 0.2)  
+        )
+
+    df_sorted = df_filtered.sort_values(by='Weighted Score', ascending=False)
     return df_sorted.head(top_n)
 
 # ---- Submit Button ----
@@ -174,4 +173,4 @@ if st.button("Get My Food Recommendations 🍔"):
         for _, row in df.iterrows():
             st.write(f"*{row['Menu Items']}*")
             st.write(f"🔥 Calories: {row['Energy (kCal)']} | 🍞 Carbs: {row['Total carbohydrate (g)']}g | 🥩 Protein: {row['Protein (g)']}g | 🍬 Sugar: {row['Total Sugars (g)']}g")
-            st.write(f"💜 Mood Support Score: {round(row['Mood Support Score'], 2)}\n")
+            st.write(f"💜 Weighted Score: {round(row['Weighted Score'], 2)}\n")
