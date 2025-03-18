@@ -98,7 +98,7 @@ category = st.selectbox(
 # ---- Food Recommendation Logic ----
 
 # List of keywords to identify food category
-NON_VEG_KEYWORDS = ["chicken", "egg", "fish", "beef", "mutton", "bacon", "pepperoni"]
+NON_VEG_KEYWORDS = ["chicken", "egg", "fish", "beef", "mutton", "bacon", "pepperoni", "sausage"]
 VEGETARIAN_KEYWORDS = ["paneer", "cheese", "butter", "milk", "mayonnaise"]
 
 # Function to classify food category based on item name
