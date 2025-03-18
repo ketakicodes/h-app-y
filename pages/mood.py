@@ -92,7 +92,7 @@ st.markdown("""
 # ---- Category Selection ----
 category = st.selectbox(
     "What type of food do you prefer?",
-    ["Veg", "Non-Veg", "Vegan"]
+    ["Veg", "Non-Veg"]
 )
 
 # ---- Food Recommendation Logic ----
@@ -100,26 +100,21 @@ category = st.selectbox(
 # List of keywords to identify food category
 NON_VEG_KEYWORDS = ["chicken", "egg", "fish", "beef", "mutton", "bacon", "pepperoni"]
 VEGETARIAN_KEYWORDS = ["paneer", "cheese", "butter", "milk", "mayonnaise"]
-VEGAN_BLACKLIST = VEGETARIAN_KEYWORDS  # Any item containing these is not Vegan
 
 # Function to classify food category based on item name
 def classify_category(menu_item):
-    """Classifies an item as Veg, Non-Veg, or Vegan based on keywords."""
+    """Classifies an item as Veg or Non-Veg based on keywords."""
     item_lower = menu_item.lower()
 
     # Check for Non-Veg keywords
     if any(word in item_lower for word in NON_VEG_KEYWORDS):
         return "Non-Veg"
 
-    # Check for Vegan blacklist
-    if any(word in item_lower for word in VEGAN_BLACKLIST):
-        return "Veg"  # Vegetarian but not Vegan
+    return "Veg"  # If no Non-Veg keywords found, classify as Veg
 
-    return "Vegan"  # If no animal-based products found, classify as Vegan
-
-# Load and preprocess McDonald's menu data
+# Load and preprocess menu data
 def preprocess_data(file_path):
-    """Loads data, cleans column names, and assigns category (Veg, Non-Veg, Vegan)."""
+    """Loads data, cleans column names, and assigns category (Veg or Non-Veg)."""
     try:
         df = pd.read_csv(file_path)
         df.columns = df.columns.str.strip()  # Remove extra spaces in column names
@@ -165,7 +160,7 @@ def calculate_mood_score(df, mood_rating):
 
 # Get top recommended items
 def recommend_items(df, category, top_n=3):
-    """Filters by category (Veg/Non-Veg/Vegan), sorts items by Mood Support Score, and returns recommendations."""
+    """Filters by category (Veg/Non-Veg), sorts items by Mood Support Score, and returns recommendations."""
     df_filtered = df[df['Category'].str.lower() == category.lower()]  
     df_sorted = df_filtered.sort_values(by='Mood Support Score', ascending=False)
     return df_sorted.head(top_n)
