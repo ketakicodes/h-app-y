@@ -4,104 +4,114 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.cluster import KMeans
 
-# ------------------------------
-# Page Config & Aesthetics
-# ------------------------------
-st.set_page_config(page_title="Meal Recommender", page_icon="🍽", layout="centered")
+# ---- Page Configuration ----
+st.set_page_config(page_title="Meal Recommender", page_icon="🍽️", layout="wide")
 
-st.markdown("""
-<style>
-    /* Aura Gradient Background */
+# ---- Custom Styling ----
+st.markdown(
+    """
+    <style>
+    /* Import Google Font: Poppins */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+    /* Overall App Styling */
     .stApp {
-        background: radial-gradient(circle, rgba(173,83,137,1) 10%, rgba(108,92,231,1) 40%, rgba(72,52,212,1) 70%, rgba(48,51,107,1) 100%);
-        color: white;
-        font-family: "sans-serif";
+        background: radial-gradient(
+            circle at center,
+            #ad5389 10%,
+            #6c5ce7 40%,
+            #4834d4 70%,
+            #30336b 100%
+        );
+        font-family: 'Poppins', sans-serif;
+        color: #FFFFFF;
     }
-    /* Centered and Bold White Text */
-    h1, h2, h3, h4, h5, h6, p, label {
+
+    /* Title Styling */
+    h1 {
         text-align: center;
-        color: white !important;
-        font-weight: bold;
+        color: #FFFFFF;
+        font-size: 3.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        margin-bottom: 0.3rem;
     }
-    /* Buttons: hot pink, fixed width, extra spacing, hover effect */
-    .stButton > button {
-        background-color: #ff69b4; /* Hot pink */
-        color: white;
+
+    /* Subtitle Styling */
+    h2, h3, h4, h5, h6, p {
+        text-align: center;
+        color: #f0f0f0;
+        margin: 0.5rem 0;
+    }
+
+    /* Radio Button Styling */
+    .stRadio > label {
+        font-size: 1.2rem;
         font-weight: bold;
-        border-radius: 20px;
-        padding: 10px 25px;
-        margin: 5px;             /* Spacing around each button */
-        width: 160px;            /* Fixed width for uniform size */
-        box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.3);
+        color: #FFD700;
+    }
+
+    /* Dataframe Styling */
+    .stDataFrame {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 10px;
+    }
+
+    /* Button Styling */
+    .stButton > button {
+        background-color: #ff69b4;
+        color: #FFFFFF;
+        font-weight: 600;
+        border-radius: 30px;
+        padding: 1rem 2rem;
+        margin: 1rem;
+        font-size: 1.1rem;
+        box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease-in-out;
         border: none;
     }
     .stButton > button:hover {
-        background-color: #ff1493; /* Deeper pink */
-        transform: scale(1.05);
+        background-color: #ff1493;
+        transform: translateY(-3px) scale(1.05);
         cursor: pointer;
+        box-shadow: 0px 12px 20px rgba(0, 0, 0, 0.2);
     }
-</style>
-""", unsafe_allow_html=True)
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-# ------------------------------
-# Data Loading and Preprocessing
-# ------------------------------
+# ---- Title ----
+st.title("🍽️ Smart Meal Recommendation System")
+st.write("### Find the best meal based on how you want to feel after eating! 😋")
+
+# ---- Load Dataset ----
+@st.cache_data
 def load_data():
-    # Adjust path if necessary
-    df = pd.read_csv("India_Menu.csv")
+    df = pd.read_csv("India_Menu_New.csv")
 
-    # Fill missing Sodium with mean
     df["Sodium (mg)"].fillna(df["Sodium (mg)"].mean(), inplace=True)
+    df["Veg/Non-Veg"] = df["Veg/Non-Veg"].str.strip().str.title()
 
-    selected_features = [
-        "Energy (kCal)",
-        "Protein (g)",
-        "Total fat (g)",
-        "Sat Fat (g)",
-        "Total carbohydrate (g)",
-        "Total Sugars (g)",
-        "Added Sugars (g)",
-        "Sodium (mg)"
-    ]
-
+    selected_features = ["Energy (kCal)", "Protein (g)", "Total fat (g)",
+                         "Sat Fat (g)", "Total carbohydrate (g)",
+                         "Total Sugars (g)", "Added Sugars (g)", "Sodium (mg)"]
+    
     df_selected = df[selected_features]
 
-    # Scale data using MinMaxScaler
     scaler = MinMaxScaler()
-    df_scaled = pd.DataFrame(
-        scaler.fit_transform(df_selected),
-        columns=df_selected.columns
-    )
+    df_scaled = pd.DataFrame(scaler.fit_transform(df_selected), columns=df_selected.columns)
+
     df_scaled["Menu Items"] = df["Menu Items"].values
     df_scaled["Menu Category"] = df["Menu Category"].values
+    df_scaled["Veg/Non-Veg"] = df["Veg/Non-Veg"].values
 
-    # Create feeling-based scores
-    df_scaled["Energetic_Score"] = (
-        df_scaled["Total carbohydrate (g)"] * 0.5
-        + df_scaled["Protein (g)"] * 0.5
-    )
-    df_scaled["Lean_Score"] = (
-        df_scaled["Protein (g)"] * 0.6
-        - df_scaled["Total fat (g)"] * 0.4
-    )
-    df_scaled["Satiated_Score"] = (
-        df_scaled["Protein (g)"] * 0.5
-        + df_scaled["Total fat (g)"] * 0.5
-    )
-    df_scaled["Avoid_Bloating_Score"] = (
-        -df_scaled["Sodium (mg)"] * 0.5
-        - df_scaled["Total carbohydrate (g)"] * 0.3
-        - df_scaled["Added Sugars (g)"] * 0.2
-    )
+    df_scaled["Energetic_Score"] = df_scaled["Total carbohydrate (g)"] * 0.5 + df_scaled["Protein (g)"] * 0.5
+    df_scaled["Lean_Score"] = df_scaled["Protein (g)"] * 0.6 - df_scaled["Total fat (g)"] * 0.4
+    df_scaled["Satiated_Score"] = df_scaled["Protein (g)"] * 0.5 + df_scaled["Total fat (g)"] * 0.5
+    df_scaled["Avoid_Bloating_Score"] = -df_scaled["Sodium (mg)"] * 0.5 - df_scaled["Total carbohydrate (g)"] * 0.3 - df_scaled["Added Sugars (g)"] * 0.2
 
-    # Clustering
-    X = df_scaled[[
-        "Energetic_Score",
-        "Lean_Score",
-        "Satiated_Score",
-        "Avoid_Bloating_Score"
-    ]]
+    X = df_scaled[["Energetic_Score", "Lean_Score", "Satiated_Score", "Avoid_Bloating_Score"]]
     scaler_std = StandardScaler()
     X_scaled = scaler_std.fit_transform(X)
 
@@ -110,62 +120,44 @@ def load_data():
 
     return df_scaled
 
-# ------------------------------
-# Meal Recommendation Function
-# ------------------------------
-def recommend_meals(df, feeling):
+df = load_data()
+
+# ---- Feeling Selection UI ----
+st.write("#### Select how you want to feel after your meal:")
+feeling = st.radio(
+    "Choose your desired feeling:",
+    ["⚡ Energetic", "🏋️ Lean", "🍛 Satiated", "💨 Avoid Bloating"],
+    horizontal=True
+)
+
+# ---- Meal Type Selection UI ----
+st.write("#### Select your meal type:")
+meal_type = st.radio(
+    "Choose your meal preference:",
+    ["Veg", "Non-Veg"],
+    horizontal=True
+)
+
+# ---- Recommendation Logic ----
+def recommend_meals(df, feeling, meal_type):
     feeling_map = {
         "⚡ Energetic": "Energetic_Score",
-        "🏋 Lean": "Lean_Score",
+        "🏋️ Lean": "Lean_Score",
         "🍛 Satiated": "Satiated_Score",
         "💨 Avoid Bloating": "Avoid_Bloating_Score"
     }
 
-    if feeling not in feeling_map:
-        return None
+    df_filtered = df[df["Veg/Non-Veg"] == meal_type]
+    top_meals = df_filtered.sort_values(by=feeling_map[feeling], ascending=False).head(5)
+    
+    return top_meals[["Menu Items", "Menu Category", "Veg/Non-Veg"]]
 
-    # Sort descending by the chosen feeling's score
-    top_meals = df.sort_values(
-        by=feeling_map[feeling],
-        ascending=False
-    ).head(5)
+# ---- Display Recommendations ----
+if feeling and meal_type:
+    st.write(f"### Recommended {meal_type} Meals for {feeling}")
+    recommendations = recommend_meals(df, feeling, meal_type)
 
-    return top_meals[["Menu Items", "Menu Category"]]
-
-# ------------------------------
-# Streamlit UI
-# ------------------------------
-st.title("🍽 Smart Meal Recommender")
-st.write("### Select How You Want to Feel After Your Meal:")
-
-df = load_data()
-
-# Create 4 columns with extra gap
-col1, col2, col3, col4 = st.columns(4, gap="large")
-
-selected_feeling = None
-
-with col1:
-    if st.button("⚡ Energetic"):
-        selected_feeling = "⚡ Energetic"
-
-with col2:
-    if st.button("🏋 Lean"):
-        selected_feeling = "🏋 Lean"
-
-with col3:
-    if st.button("🍛 Satiated"):
-        selected_feeling = "🍛 Satiated"
-
-with col4:
-    if st.button("💨 Avoid Bloating"):
-        selected_feeling = "💨 Avoid Bloating"
-
-# Display Recommendations
-if selected_feeling:
-    st.write(f"### Recommended Meals for {selected_feeling}")
-    recommendations = recommend_meals(df, selected_feeling)
-    if recommendations is not None:
+    if recommendations is not None and not recommendations.empty:
         st.dataframe(recommendations, use_container_width=True)
     else:
-        st.error("Something went wrong! Please try again.")
+        st.error("No recommendations found! Please check your selection and try again.")
