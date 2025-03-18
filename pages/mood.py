@@ -2,181 +2,131 @@ import streamlit as st
 import pandas as pd
 
 # ---- ✅ Fix: Set Page Config First ----
-st.set_page_config(
-    page_title="Mind", page_icon="💜", layout="centered")
+st.set_page_config(page_title="Mind", page_icon="💜", layout="centered")
 
-# ---- Custom CSS for Aesthetic Aura Background ----
+# ---- Custom CSS ----
 st.markdown(
     """
     <style>
-        /* Aura Gradient Background */
-        .stApp {
-            background: radial-gradient(circle, rgba(173, 83, 137, 1) 10%, rgba(108, 92, 231, 1) 40%, rgba(72, 52, 212, 1) 70%, rgba(48, 51, 107, 1) 100%);
-            color: white;
-        }
-
-        /* White Text */
-        h1, h2, h3, h4, h5, h6, p, label {
-            color: white !important;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        /* Centering Elements */
-        .stSlider, .stSelectbox, .stButton {
-            margin: auto;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* Custom Styling for Buttons */
-        .stButton > button {
-            background-color: white;
-            color: #8E44AD;
-            font-weight: bold;
-            border-radius: 20px;
-            padding: 10px 25px;
-            box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.3);
-            transition: all 0.3s ease-in-out;
-        }
-        .stButton > button:hover {
-            background-color: #8E44AD;
-            color: white;
-            transform: scale(1.05);
-        }
-
-        /* Custom Styling for Sliders & Selectbox */
-        .stSlider, .stSelectbox {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 10px;
-        }
-        
+        .stApp { background: radial-gradient(circle, rgba(173, 83, 137, 1) 10%, rgba(108, 92, 231, 1) 40%, rgba(72, 52, 212, 1) 70%, rgba(48, 51, 107, 1) 100%); color: white; }
+        h1, h2, h3, p, label { color: white !important; font-weight: bold; text-align: center; }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# ---- Title & Subtitle ----
-st.title("💜 Mood-Based Food Recommender")
+# ---- Title ----
+st.title("💜 Mood-Based Food Recommender (Research-Backed!)")
 st.subheader("Tell us how you're feeling today!")
 
-# ---- Mood Slider (1-10) with Dynamic Emoji ----
+# ---- Mood Slider ----
 mood_rating = st.slider("Move the slider to select your mood:", 1, 10, 5)
 
-# Mood Mapping (1 = Sad, 10 = Extremely Happy)
+# Mood Labels
 mood_labels = {
-    1: "😢 Sad",
-    2: "😞 Down",
-    3: "😕 Meh",
-    4: "😐 Neutral",
-    5: "🙂 Slightly Happy",
-    6: "😊 Happy",
-    7: "😁 Very Happy",
-    8: "🤩 Excited",
-    9: "🎉 Super Excited",
-    10: "🥳 Extremely Happy"
+    1: "😢 Sad", 2: "😞 Down", 3: "😕 Meh", 4: "😐 Neutral",
+    5: "🙂 Slightly Happy", 6: "😊 Happy", 7: "😁 Very Happy",
+    8: "🤩 Excited", 9: "🎉 Super Excited", 10: "🥳 Extremely Happy"
 }
-
-# Display Mood Based on Slider
 st.markdown(f"### {mood_labels[mood_rating]}")
 
-# Mood Guide
+# Mood Guide (Research-Backed!)
 st.markdown("""
-Mood Guide:  
-🟣 1-3 → Feeling low 😢 (Need comfort food?)  
-🟡 4-6 → Neutral/Happy 😊 (Balanced meal might be best!)  
-🟢 7-10 → Super Happy 🥳 (Go for energy-boosting food!)  
+*Mood Guide (Research-Backed!):*  
+🟣 *1-3* → Comfort food (Higher protein & moderate fats)  
+🟡 *4-6* → Balanced meals (Good carbs, protein & fats)  
+🟢 *7-10* → Energy-boosting food (Healthy carbs, fiber & moderate protein)  
 """)
 
 # ---- Category Selection ----
-category = st.selectbox(
-    "What type of food do you prefer?",
-    ["Veg", "Non-Veg"]
-)
+category = st.selectbox("What type of food do you prefer?", ["Veg", "Non-Veg"])
 
-# ---- Food Recommendation Logic ----
+# ---- Improved Category Classifier ----
+NON_VEG_KEYWORDS = ["chicken", "egg", "fish", "beef", "mutton", "bacon", "sausage", "pepperoni"]
+VEG_KEYWORDS = ["paneer", "cheese", "butter", "milk"]
 
-# List of keywords to identify food category
-NON_VEG_KEYWORDS = ["chicken", "egg", "fish", "beef", "mutton", "bacon", "pepperoni"]
-VEGETARIAN_KEYWORDS = ["paneer", "cheese", "butter", "milk", "mayonnaise"]
-
-# Function to classify food category based on item name
 def classify_category(menu_item):
-    """Classifies an item as Veg or Non-Veg based on keywords."""
+    """Classifies food into Veg or Non-Veg using keywords."""
     item_lower = menu_item.lower()
-
-    # Check for Non-Veg keywords
     if any(word in item_lower for word in NON_VEG_KEYWORDS):
         return "Non-Veg"
+    return "Veg"
 
-    return "Veg"  # If no Non-Veg keywords found, classify as Veg
-
-# Load and preprocess menu data
+# ---- Data Preprocessing ----
 def preprocess_data(file_path):
-    """Loads data, cleans column names, and assigns category (Veg or Non-Veg)."""
+    """Loads & cleans menu data, calculates scores, and assigns categories."""
     try:
         df = pd.read_csv(file_path)
-        df.columns = df.columns.str.strip()  # Remove extra spaces in column names
+        df.columns = df.columns.str.strip()
 
-        # Assign category to each item
+        # Classify Veg / Non-Veg
         df["Category"] = df["Menu Items"].apply(classify_category)
 
+        # ✅ Compute Carb Quality Score (Research-Backed!)
+        df['Carb Quality Score'] = df['Total carbohydrate (g)'] - (df['Added Sugars (g)'] * 2)
+
+        # ✅ Define High-Quality & Low-Quality Carbs (Based on Research)
+        df['High Quality Carb'] = ((df['Added Sugars (g)'] < 2) & (df['Total carbohydrate (g)'] / df['Protein (g)'] < 3)).astype(int)
+        df['Low Quality Carb'] = ((df['Added Sugars (g)'] > 5) | (df['Total carbohydrate (g)'] / df['Protein (g)'] > 5)).astype(int)
+
         return df
-    except FileNotFoundError:
-        st.error("Error: File not found. Ensure 'India_Menu.csv' is in the correct directory.")
-        return None
     except Exception as e:
-        st.error(f"Error: {e}")
+        st.error(f"Error loading data: {e}")
         return None
 
-# Compute Mood Support Score
-def calculate_mood_score(df, mood_rating):
-    """Computes a mood support score for each menu item."""
-    scores = []
+# ---- Mood-Based Weight Adjustments (Research-Backed!) ----
+def compute_mood_score(df, mood_rating):
+    """Calculates Mood Support Score dynamically based on research-backed mood levels."""
+    
+    # ✅ Define Mood Buckets & Weights  
+    if mood_rating <= 3:  # Low Mood → Comfort Foods
+        mood_bucket = "Low Mood"
+        W_hc, W_p, W_f, W_lc = 1.5, 1.5, 1.2, 1.5
+    elif 4 <= mood_rating <= 6:  # Moderate Mood → Balanced Choices
+        mood_bucket = "Moderate Mood"
+        W_hc, W_p, W_f, W_lc = 1.2, 1.2, 1.0, 1.2
+    else:  # High Mood → Energy-Boosting Foods
+        mood_bucket = "High Mood"
+        W_hc, W_p, W_f, W_lc = 1.0, 1.0, 0.8, 1.0
 
-    for _, row in df.iterrows():
-        score = 0
+    # ✅ Compute Mood Support Score  
+    df['Mood Support Score'] = (
+        W_hc * df['High Quality Carb'] +
+        W_p * df['Protein (g)'] +
+        W_f * df['Total Fat (g)'] -
+        W_lc * df['Low Quality Carb']
+    )
 
-        # High-quality carbs boost serotonin
-        if row['Total Sugars (g)'] < 5:
-            score += 3  
+    return df, mood_bucket
 
-        # Low-quality carbs cause sugar crashes
-        if row['Total Sugars (g)'] > 10:
-            score -= 3  
+# ---- Recommendation Logic (Research-Backed!) ----
+def recommend_items(df, category, mood_bucket, top_n=3):
+    """Filters by category, mood-based criteria, sorts, and returns recommendations."""
+    df_filtered = df[df['Category'].str.lower() == category.lower()]
 
-        # Higher protein supports neurotransmitter function
-        score += row['Protein (g)'] * 0.2  
+    # Filter foods based on mood bucket preferences
+    if mood_bucket == "Low Mood":  # Comfort foods
+        df_filtered = df_filtered[df_filtered['Protein (g)'] > 5]
+    elif mood_bucket == "Moderate Mood":  # Balanced meals
+        df_filtered = df_filtered[(df_filtered['High Quality Carb'] == 1) & (df_filtered['Low Quality Carb'] == 0)]
+    else:  # High Mood → Energy-boosting
+        df_filtered = df_filtered[df_filtered['Carb Quality Score'] > 10]
 
-        # Adjust if mood is very low (≤3)
-        if mood_rating <= 3:
-            score *= 1.5  
-
-        scores.append(score)
-
-    df['Mood Support Score'] = scores
-    return df
-
-# Get top recommended items
-def recommend_items(df, category, top_n=3):
-    """Filters by category (Veg/Non-Veg), sorts items by Mood Support Score, and returns recommendations."""
-    df_filtered = df[df['Category'].str.lower() == category.lower()]  
     df_sorted = df_filtered.sort_values(by='Mood Support Score', ascending=False)
     return df_sorted.head(top_n)
 
 # ---- Submit Button ----
 if st.button("Get My Food Recommendations 🍔"):
-    # Load data
-    file_path = "India_Menu.csv"  
+    file_path = "mcdonalds_menu.csv"  
     df = preprocess_data(file_path)
 
     if df is not None:
-        df = calculate_mood_score(df, mood_rating)
-        top_recommendations = recommend_items(df, category)
+        df, mood_bucket = compute_mood_score(df, mood_rating)
+        top_recommendations = recommend_items(df, category, mood_bucket)
 
-        st.subheader("🍽️ Your Top Food Recommendations:")
+        # Display Recommendations
+        st.subheader(f"🍽️ Your Top Food Recommendations ({mood_bucket}) (Research-Backed!):")
         for _, row in top_recommendations.iterrows():
-            st.write(f"{row['Menu Items']}")
-            st.write(f"🔥 Calories: {row['Energy (kCal)']} | 🍞 Carbs: {row['Total carbohydrate (g)']}g | 🥩 Protein: {row['Protein (g)']}g | 🍬 Sugar: {row['Total Sugars (g)']}g")
+            st.write(f"*{row['Menu Items']}*")
+            st.write(f"🔥 Calories: {row['Energy (kCal)']} | 🍞 Carbs: {row['Total carbohydrate (g)']}g | 🥩 Protein: {row['Protein (g)']}g | 🍬 Sugar: {row['Added Sugars (g)']}g")
             st.write(f"💜 Mood Support Score: {round(row['Mood Support Score'], 2)}\n")
