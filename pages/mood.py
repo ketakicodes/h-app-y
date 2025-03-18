@@ -40,7 +40,7 @@ st.markdown("""
 # ---- 🍽️ Category Selection ----
 category = st.selectbox("What type of food do you prefer?", ["Veg", "Non-Veg"])
 
-# ---- 🚫 Safer Category Classification ----
+# ---- 🚫 Food Classification ----
 NON_VEG_KEYWORDS = ["chicken", "egg", "fish", "beef", "mutton", "bacon", "sausage", "pepperoni"]
 VEG_KEYWORDS = ["paneer", "cheese", "butter", "milk"]
 
@@ -61,7 +61,7 @@ def preprocess_data(file_path):
         # ✅ Assign Veg / Non-Veg
         df["Category"] = df["Menu Items"].apply(classify_category)
 
-        # ✅ Compute Carb Quality Score (Research-Backed!)
+        # ✅ Compute Carb Quality Score
         df['Carb Quality Score'] = df['Total carbohydrate (g)'] - (df['Added Sugars (g)'] * 2)
 
         # ✅ Define High-Quality & Low-Quality Carbs
@@ -73,15 +73,15 @@ def preprocess_data(file_path):
         st.error(f"Error loading data: {e}")
         return None
 
-# ---- 🧠 Mood-Based Weight Adjustments (Fully Dynamic!) ----
+# ---- 🧠 Mood-Based Weight Adjustments ----
 def compute_mood_score(df, mood_rating):
-    """Calculates Mood Support Score dynamically based on research-backed mood levels."""
+    """Calculates Mood Support Score dynamically based on mood levels."""
 
-    # ✅ Adjust Weights Based on Mood  
+    # Adjust weights dynamically
     if mood_rating <= 3:  # Low Mood → Comfort Foods
-        W_hc, W_p, W_f, W_lc = 2.0, 1.8, 1.5, 2.0
-    elif 4 <= mood_rating <= 6:  # Moderate Mood → Balanced Choices
-        W_hc, W_p, W_f, W_lc = 1.5, 1.5, 1.2, 1.5
+        W_hc, W_p, W_f, W_lc = 2.5, 2.2, 2.0, 2.5
+    elif 4 <= mood_rating <= 6:  # Neutral Mood → Balanced Choices
+        W_hc, W_p, W_f, W_lc = 1.8, 1.8, 1.5, 1.8
     else:  # High Mood → Energy-Boosting Foods
         W_hc, W_p, W_f, W_lc = 1.2, 1.2, 1.0, 1.0
 
@@ -95,18 +95,18 @@ def compute_mood_score(df, mood_rating):
 
     return df
 
-# ---- 🍽️ Dynamic Mood-Based Recommendation ----
+# ---- 🍽️ Mood-Based Recommendations ----
 def recommend_items(df, category, mood_rating, top_n=3):
     """Filters & sorts items based on mood-specific criteria."""
     df_filtered = df[df['Category'].str.lower() == category.lower()]
 
-    # ✅ Apply Mood-Specific Filtering  
-    if mood_rating <= 3:  # Comfort foods (higher protein & fats)
-        df_filtered = df_filtered[(df_filtered['Protein (g)'] > 6) & (df_filtered['Total Fat (g)'] > 5)]
+    # Apply Mood-Based Filtering  
+    if mood_rating <= 3:  # Comfort foods
+        df_filtered = df_filtered[(df_filtered['Protein (g)'] > 8) & (df_filtered['Total Fat (g)'] > 6)]
     elif 4 <= mood_rating <= 6:  # Balanced meals
         df_filtered = df_filtered[(df_filtered['High Quality Carb'] == 1) & (df_filtered['Low Quality Carb'] == 0)]
     else:  # Energy-boosting foods
-        df_filtered = df_filtered[df_filtered['Carb Quality Score'] > 8]
+        df_filtered = df_filtered[df_filtered['Carb Quality Score'] > 10]
 
     df_sorted = df_filtered.sort_values(by='Mood Support Score', ascending=False)
     return df_sorted.head(top_n)
