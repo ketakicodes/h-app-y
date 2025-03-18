@@ -83,10 +83,10 @@ st.markdown(f"### {mood_labels[mood_rating]}")
 
 # Mood Guide
 st.markdown("""
-*Mood Guide:*  
-🟣 *1-3* → Feeling low 😢 (Need comfort food?)  
-🟡 *4-6* → Neutral/Happy 😊 (Balanced meal might be best!)  
-🟢 *7-10* → Super Happy 🥳 (Go for energy-boosting food!)  
+Mood Guide:  
+🟣 1-3 → Feeling low 😢 (Need comfort food?)  
+🟡 4-6 → Neutral/Happy 😊 (Balanced meal might be best!)  
+🟢 7-10 → Super Happy 🥳 (Go for energy-boosting food!)  
 """)
 
 # ---- Category Selection ----
@@ -177,6 +177,6 @@ if st.button("Get My Food Recommendations 🍔"):
 
         st.subheader("🍽️ Your Top Food Recommendations:")
         for _, row in top_recommendations.iterrows():
-            st.write(f"*{row['Menu Items']}*")
+            st.write(f"{row['Menu Items']}")
             st.write(f"🔥 Calories: {row['Energy (kCal)']} | 🍞 Carbs: {row['Total carbohydrate (g)']}g | 🥩 Protein: {row['Protein (g)']}g | 🍬 Sugar: {row['Total Sugars (g)']}g")
             st.write(f"💜 Mood Support Score: {round(row['Mood Support Score'], 2)}\n")
