@@ -114,7 +114,7 @@ def recommend_items(df, category, mood_rating, top_n=3):
 # ---- 🔘 Get Recommendations ----
 if st.button("Get My Food Recommendations 🍔"):
     file_path = "India_Menu_New.csv"  
-    df = pd.preprocess_data(file_path)
+    df = preprocess_data(file_path)
 
     if df is not None:
         df = compute_mood_score(df, mood_rating)
