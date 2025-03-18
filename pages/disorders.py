@@ -8,26 +8,48 @@ from sklearn.preprocessing import MinMaxScaler
 # ------------------------------
 st.set_page_config(page_title="Disorders", page_icon="🩺", layout="centered")
 
-# Apply custom CSS for the "Aura" aesthetic
+# Apply custom CSS for the "Purple Aura" aesthetic
 st.markdown(
     """
     <style>
-    body {
-        background: linear-gradient(135deg, #6a11cb, #2575fc);
-        font-family: Arial, sans-serif;
-    }
+    /* Background - Purple Aura */
     .stApp {
-        background: linear-gradient(135deg, #6a11cb, #2575fc);
+        background: linear-gradient(135deg, #7b2cbf, #ff90e8);
+        color: white;
     }
-    .stSelectbox, .stDataFrame {
-        background: white;
+
+    /* Centering Title */
+    h1, h2, h3, h4 {
+        text-align: center;
+    }
+
+    /* Select Box */
+    .stSelectbox {
+        background: #ffffff;
         border-radius: 10px;
+        padding: 5px;
     }
+
+    /* DataFrame Styling */
+    .stDataFrame {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        color: black;
+    }
+
+    /* Buttons */
     .stButton>button {
-        background-color: #ff69b4;
+        background: linear-gradient(45deg, #ff69b4, #c738bd);
         color: white;
         font-weight: bold;
-        border-radius: 10px;
+        border-radius: 15px;
+        border: none;
+        padding: 10px;
+        transition: 0.3s;
+    }
+    .stButton>button:hover {
+        background: linear-gradient(45deg, #ff90e8, #ff69b4);
+        transform: scale(1.05);
     }
     </style>
     """,
@@ -37,8 +59,8 @@ st.markdown(
 # ------------------------------
 # Page Title
 # ------------------------------
-st.title("🩺 Smart Meal Recommender")
-st.subheader("Select your health condition to view the best meal recommendations:")
+st.title("🍽️ Smart Meal Recommender")
+st.subheader("✨ Select your health condition to get personalized meal recommendations:")
 
 # ------------------------------
 # Health Condition Selector
@@ -53,7 +75,7 @@ condition = st.selectbox(
 # ------------------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv("/mnt/data/India_Menu.csv")  # Load from correct path
+    df = pd.read_csv("India_Menu.csv")  # Load from correct path
     df.columns = df.columns.str.strip()  # Remove accidental spaces
     return df
 
@@ -76,7 +98,7 @@ def compute_diabetes_score(df):
     return df
 
 # ------------------------------
-# PCOS/PCOD Score Calculation (Adjusted)
+# PCOS/PCOD Score Calculation
 # ------------------------------
 def compute_pcos_score(df):
     df = df.copy()
@@ -150,10 +172,10 @@ def recommend_for_allergy(df, allergen="nuts"):
 # Display Recommendations
 # ------------------------------
 if condition == "Diabetes":
-    st.write("### 🍎 Top 10 Dishes for Diabetes")
+    st.write("### 🍏 Top 10 Dishes for Diabetes")
     recommendations = recommend_for_diabetes(df)
 elif condition == "PCOS/PCOD":
-    st.write("### 🥦 Top 10 Dishes for PCOS/PCOD")
+    st.write("### 🥑 Top 10 Dishes for PCOS/PCOD")
     recommendations = recommend_for_pcos(df)
 elif condition == "Lactose Intolerance":
     st.write("### 🥛 Top 10 Dishes for Lactose Intolerance")
