@@ -1,1 +1,7 @@
+This Program has been developed by 
+Ketaki Kulkarni , Vrishita Gharte , Vaishnavi Joshi and Shruti Gorad.
+
+It is licensed under Apache 2.0
+Refer to link : https://www.apache.org/licenses/LICENSE-2.0.html
+
 
