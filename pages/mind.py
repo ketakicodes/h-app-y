@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit_extras.switch_page_button import switch_page  # For automatic navigation
 
 st.set_page_config(
     page_title="Mind",
@@ -60,12 +59,9 @@ st.write("Choose how you’d like to analyze your food from a mind perspective: 
 col_left, col_center, col_right = st.columns([2, 1, 2], gap="large")
 
 with col_left:
-    mood_option = st.button("😄 Mood Wise")
-with col_right:
-    texture_option = st.button("🌊 Texture Wise")
+    if st.button("😄 Mood Wise"):
+        st.switch_page("pages/mood.py")  # Navigate correctly
 
-# ---- Page Navigation ----
-if mood_option:
-    switch_page("Mood")
-if texture_option:
-    switch_page("Texture")
+with col_right:
+    if st.button("🌊 Texture Wise"):
+        st.switch_page("pages/texture.py")  # Navigate correctly
